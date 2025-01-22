@@ -60,6 +60,7 @@ exports.deleteUser = async (req, res) => {
 
 // Search users
 exports.searchUsers = async (req, res) => {
+  // console.log(req.query);
   try {
     const { username, email, city } = req.query;
     const query = {};
@@ -70,5 +71,43 @@ exports.searchUsers = async (req, res) => {
     res.render("searchResults", { users });
   } catch (err) {
     res.status(500).send("Server Error");
+  }
+};
+
+//Global search users
+exports.globalSearchUsers = async (req, res) => {
+  console.log("=====req.query", req.query);
+
+  const { q = "", ...fields } = req.query;
+  console.log(q, fields);
+
+  // Helper function to build regex filters for a sentence
+  const buildFilters = (sentence) => {
+    const words = sentence.split(" ").map((word) => word.trim());
+    const regexFilters = words.map((word) => ({
+      $or: [
+        { username: new RegExp(word, "i") },
+        { email: new RegExp(word, "i") },
+        { city: new RegExp(word, "i") },
+      ],
+    }));
+    return { $or: regexFilters };
+  };
+
+  const filters = buildFilters(q);
+
+  // Field-based specific filters
+  for (const key in fields) {
+    if (fields[key]) {
+      filters[key] = new RegExp(fields[key], "i"); // Case-insensitive search
+    }
+  }
+  console.log("filters", filters);
+  try {
+    const users = await User.find(filters);
+    const usersCount = users.length;
+    res.json({ usersCount, users });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
