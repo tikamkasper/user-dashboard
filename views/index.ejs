@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+
+<a href="/add">Add User</a>
+
+<form action="/search" method="GET">
+    <input type="text" name="username" placeholder="Search by username">
+    <input type="email" name="email" placeholder="Search by email">
+    <input type="text" name="city" placeholder="Search by city">
+    <button type="submit">Search</button>
+</form>
+
+<ul>
+    <% users.forEach(user => { %>
+        <li>
+            <strong><%= user.username %></strong> - <%= user.email %> - <%= user.city %>
+            <a href="/edit/<%= user._id %>">Edit</a>
+            <form action="/delete/<%= user._id %>?_method=DELETE" method="POST">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    <% }) %>
+</ul>
+
+<%- include('partials/footer') %>
